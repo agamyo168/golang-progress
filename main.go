@@ -1,20 +1,8 @@
-package main //Every go file must have a package declaration -- Go projects must have a main package - main file and main function where the function is the entrypoint.
+package main //Every go file must have a package declaration -- Go projects must have a main package (you can name it anything) - main file and main function where the function is the entrypoint.
 
 import (
 	"net/http"
 )
-
-
-type api struct {
-	addr string
-}
-//Go Receiver.
-func (a *api) getUsersHandler(w http.ResponseWriter, r *http.Request){
-	w.Write([]byte("users page"))
-}
-func (a *api) createUsersHandler(w http.ResponseWriter, r *http.Request){
-	w.Write([]byte("create user"))
-}
 
 func main ()  {
 
