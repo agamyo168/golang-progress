@@ -45,3 +45,30 @@ func (u User) Greet() {
 ```
 
 _Note: The (u User) part tells Go that this function belongs to the User struct. It's essentially the Go version of this._
+
+### Naming convention - private and public
+
+- Capitalized (PascalCase): The struct or field is exported (Public). It can be accessed by other packages.
+- Lowercase (camelCase): The struct or field is unexported (Private). It can only be used within its own package.
+
+```go
+package models
+
+// User is "Public" because it starts with a capital U.
+// Other packages can use models.User{}.
+type User struct {
+    Name string // Public field
+    age  int    // Private field (cannot be seen outside this package)
+}
+```
+
+### Struct Tags
+
+In Go, we use Struct Tags to tell the language how to map struct fields to JSON keys.
+
+```go
+type User struct {
+    FirstName string `json:"first_name"`
+    Age       int    `json:"age"`
+}
+```
