@@ -1,0 +1,1 @@
+In Node, it’s tempting to use `process.env.DB_URL` everywhere. In Go, we try to only read `os.Getenv` once in main.go, put it into our config struct, and pass it down. This makes your code "deterministic", you always know exactly where a value came from.

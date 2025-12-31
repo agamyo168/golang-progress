@@ -1,3 +1,5 @@
+Should be the boilerplate for all my Go projects?
+
 Techstack:
 
 - Go 1.22
