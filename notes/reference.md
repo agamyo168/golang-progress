@@ -1,1 +1,4 @@
-[Backend Engineering Course in Go](https://www.youtube.com/watch?v=h3fqD6IprIA&list=PLYEESps429vrFV0yiN_MCaDPhnYb0qRxK) 60 minutes In
+| Resource                                                                                                                | Description                                                                                         | Timestamp        |
+| ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------- |
+| [Backend Engineering Course in Go](https://www.youtube.com/watch?v=h3fqD6IprIA&list=PLYEESps429vrFV0yiN_MCaDPhnYb0qRxK) | How to get started with Go in the backend. 12-Factor app, Clean Architecture and Repository pattern | 2h/3h (Not done) |
+| [Article on Repository pattern](https://threedots.tech/post/repository-pattern-in-go/)                                  |                                                                                                     |

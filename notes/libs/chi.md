@@ -35,3 +35,13 @@ middleware.Recoverer is a piece of middleware provided by Chi that gracefully ha
     Sends a 500 Internal Server Error back to the client.
 
     Keeps the server alive to handle other incoming requests.
+
+### Template -- Standard
+
+```go
+	r.Use(middleware.RequestID) //Adds request Id to each request
+	r.Use(middleware.RealIP) // XFF header and gets the real ip
+	r.Use(middleware.Recoverer) // on panic restarts/recovers
+	r.Use(middleware.Logger) //Logs each request and response
+	r.Use(middleware.Timeout(60 * time.Second)) // Request times out after 1 minute.
+```
