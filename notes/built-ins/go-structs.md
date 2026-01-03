@@ -72,3 +72,11 @@ type User struct {
     Age       int    `json:"age"`
 }
 ```
+
+### Struct on the fly -> Like an Creating an Object
+
+```go
+ products := struct {
+		Products []string `json:"products"`
+	}{}
+```

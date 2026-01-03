@@ -1,0 +1,26 @@
+package products
+
+import (
+	"net/http"
+
+	"github.com/agamyo168/e-commerce/internal/json"
+)
+
+type handler struct {
+	service Service
+}
+
+func NewHandler(service Service) *handler {
+	return &handler{
+		service:service,
+	}
+}
+
+func (h *handler) ListProducts(w http.ResponseWriter, r *http.Request){
+	//Return JSON in HTTP Response
+	products := struct {
+		Products []string `json:"products"`
+	}{}
+	json.Write(w, http.StatusOK, products)
+
+}

@@ -1,0 +1,36 @@
+# --- Binaries & Compiled Files ---
+# Go produces a single static binary. We don't want to commit it.
+bin/
+tmp/
+dist/
+# If you run `go build -o myapp`, ignore the resulting file
+myapp
+
+# --- Air (Live Reloading) ---
+# Air builds your app into a temporary directory before running it.
+.air*
+tmp/
+
+# --- Nix ---
+# If you use direnv, it creates a local cache.
+.direnv/
+result
+result-*
+
+# --- Environment & Secrets ---
+# Never, ever commit your actual .env file with DB passwords!
+.env
+*.env.local
+!.env.example
+
+# --- Go Dependencies ---
+# Generally, we don't commit the vendor folder in modern Go (post-1.11)
+vendor/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+
+# --- Database / Tools ---
+# If you use go-migrate or local docker volumes
+dump.sql
