@@ -3,13 +3,15 @@ package main
 import (
 	"log/slog"
 	"os"
+
+	"github.com/agamyo168/e-commerce/internal/env"
 )
 
 func main(){
 	cfg := config{
-		addr: ":8080",
+		addr: env.GetString("ADDR", ":8080"),
 		db: dbConfig{
-			dsn: "postgres://admin:adminpassword@local/ecommerce?sslmode=disable",
+			dsn: env.GetString("DB_ADDR", "postgres://admin:adminpassword@localhost/ecomm_db?sslmode=disable"),
 		},
 	}
 	//Structured Log
@@ -20,6 +22,6 @@ func main(){
 	}
 	if err := app.run(app.mount()); err != nil{
 		slog.Error("server failed to start", "error", err)
-		os.Exit(1) //Why not Panic?
+		os.Exit(1)
 	}
 }

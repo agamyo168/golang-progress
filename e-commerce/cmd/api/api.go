@@ -31,7 +31,8 @@ func (app *application) mount() http.Handler {
 		w.Header().Add("Content-Type","application/json")
 		w.Write([]byte("ok"))
 	})
-	productHandler := products.NewHandler(nil)
+	productService := products.NewService()
+	productHandler := products.NewHandler(productService)
 	r.Get("/v1/products", productHandler.ListProducts)
 
 	return  r;
