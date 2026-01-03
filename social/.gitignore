@@ -21,6 +21,7 @@ result-*
 # Never, ever commit your actual .env file with DB passwords!
 .env
 *.env.local
+!.env.example
 
 # --- Go Dependencies ---
 # Generally, we don't commit the vendor folder in modern Go (post-1.11)
