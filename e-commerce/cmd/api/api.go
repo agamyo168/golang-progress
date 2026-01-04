@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/agamyo168/e-commerce/internal/json"
 	"github.com/agamyo168/e-commerce/internal/products"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,9 +28,12 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Get("/v1/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Add("Content-Type","application/json")
-		w.Write([]byte("ok"))
+		response := struct {
+			Message string `json:"message"`
+		}{
+			Message: "ok",
+		}
+		json.Write(w, http.StatusOK, response)
 	})
 	productService := products.NewService()
 	productHandler := products.NewHandler(productService)

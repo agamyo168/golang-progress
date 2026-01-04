@@ -9,6 +9,7 @@ myapp
 # --- Air (Live Reloading) ---
 # Air builds your app into a temporary directory before running it.
 .air*
+!.air.toml
 tmp/
 
 # --- Nix ---
@@ -22,6 +23,7 @@ result-*
 .env
 *.env.local
 !.env.example
+!.envrc.example
 
 # --- Go Dependencies ---
 # Generally, we don't commit the vendor folder in modern Go (post-1.11)
