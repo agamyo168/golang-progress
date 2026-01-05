@@ -5,16 +5,18 @@ import (
 	"net/http"
 	"time"
 
+	repo "github.com/agamyo168/e-commerce/internal/adapters/postgresql/sqlc"
 	"github.com/agamyo168/e-commerce/internal/json"
 	"github.com/agamyo168/e-commerce/internal/products"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
 )
 
 //This is where we inject our dependecies!!!
 type application struct {
 	config config
-	//logger
+	db *pgx.Conn
 }
 //mount
 func (app *application) mount() http.Handler {
@@ -35,10 +37,10 @@ func (app *application) mount() http.Handler {
 		}
 		json.Write(w, http.StatusOK, response)
 	})
-	productService := products.NewService()
+	productService := products.NewService(repo.New(app.db))
 	productHandler := products.NewHandler(productService)
 	r.Get("/v1/products", productHandler.ListProducts)
-
+	r.Post("/v1/products", productHandler.CreateProduct)
 	return  r;
 } 
 //run

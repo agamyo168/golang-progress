@@ -26,10 +26,12 @@ func main(){
 	if err != nil {
 		panic("Unable to connect to database")
 	}
+
 	defer conn.Close(ctx)
 
 	app := &application{
 		config: cfg,
+		db: conn,
 	}
 	if err := app.run(app.mount()); err != nil{
 		slog.Error("server failed to start", "error", err)
