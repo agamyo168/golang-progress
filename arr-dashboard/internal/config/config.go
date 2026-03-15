@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"net"
 	"os"
 	"path/filepath"
 )
@@ -10,6 +11,7 @@ type Service struct {
 	Systemd string `json:"systemd"`
 	Display string `json:"display"`
 	Port    int    `json:"port"`
+	Enabled bool   `json:"enabled"`
 }
 
 type Config struct {
@@ -18,11 +20,12 @@ type Config struct {
 }
 
 var DefaultServices = []Service{
-	{Systemd: "sonarr", Display: "Sonarr", Port: 8989},
-	{Systemd: "radarr", Display: "Radarr", Port: 7878},
-	{Systemd: "lidarr", Display: "Lidarr", Port: 8686},
-	{Systemd: "readarr", Display: "Readarr", Port: 8787},
-	{Systemd: "prowlarr", Display: "Prowlarr", Port: 9696},
+	{Systemd: "sonarr", Display: "Sonarr", Port: 8989, Enabled: true},
+	{Systemd: "radarr", Display: "Radarr", Port: 7878, Enabled: true},
+	{Systemd: "lidarr", Display: "Lidarr", Port: 8686, Enabled: true},
+	{Systemd: "readarr", Display: "Readarr", Port: 8787, Enabled: true},
+	{Systemd: "prowlarr", Display: "Prowlarr", Port: 9696, Enabled: true},
+	{Systemd: "syncthing", Display: "Syncthing", Port: 8384, Enabled: true},
 }
 
 var DefaultHost = "localhost"
@@ -56,7 +59,31 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
+	for i := range cfg.Services {
+		if !cfg.Services[i].Enabled {
+			cfg.Services[i].Enabled = true
+		}
+	}
+
 	return &cfg, nil
+}
+
+func Save(cfg *Config) error {
+	path := ConfigPath()
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0600)
+}
+
+func UpdateServices(services []Service) error {
+	cfg, err := Load()
+	if err != nil {
+		return err
+	}
+	cfg.Services = services
+	return Save(cfg)
 }
 
 func EnsureConfig() error {
@@ -64,7 +91,6 @@ func EnsureConfig() error {
 	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
-
 
 	dir := ConfigDir()
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -86,11 +112,16 @@ func EnsureConfig() error {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 func detectLocalIP() string {
-	// Simple approach: try to connect to a known address and get local IP
-	// This is a basic implementation - can be improved later
-	return ""
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return ""
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String()
 }

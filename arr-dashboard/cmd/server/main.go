@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/api/services", handler.Services)
 	http.HandleFunc("/api/refresh", handler.Refresh)
+	http.HandleFunc("/api/services/update", handler.UpdateServices)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -35,6 +36,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>arr-dashboard</title>
     <style>
+        :root {
+            --base: #1e1e2e;
+            --surface: #313244;
+            --overlay: #45475a;
+            --text: #cdd6f4;
+            --subtext: #a6adc8;
+            --accent: #b4befe;
+            --green: #a6e3a1;
+            --red: #f38ba8;
+            --peach: #fab387;
+            --blue: #89b4fa;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -42,8 +55,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background: var(--base);
+            color: var(--text);
             min-height: 100vh;
         }
         .container {
@@ -57,27 +70,29 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--overlay);
         }
         h1 {
             font-size: 1.5rem;
             font-weight: 600;
+            color: var(--accent);
         }
-        .refresh-btn {
-            background: #4361ee;
-            color: white;
-            border: none;
+        .refresh-btn, .settings-btn {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--overlay);
             padding: 0.5rem 1rem;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
-        .refresh-btn:hover {
-            background: #3a56d4;
+        .refresh-btn:hover, .settings-btn:hover {
+            background: var(--overlay);
+            border-color: var(--accent);
         }
         .refresh-btn:disabled {
-            background: #555;
+            opacity: 0.5;
             cursor: not-allowed;
         }
         .services-grid {
@@ -86,8 +101,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
             gap: 1rem;
         }
         .service-card {
-            background: #16213e;
-            border-radius: 8px;
+            background: var(--surface);
+            border-radius: 12px;
             padding: 1.25rem;
             display: flex;
             align-items: center;
@@ -107,12 +122,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
             flex-shrink: 0;
         }
         .status-dot.active {
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
         }
         .status-dot.inactive {
-            background: #ef4444;
-            box-shadow: 0 0 8px #ef4444;
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
         }
         .service-info {
             flex: 1;
@@ -123,13 +138,75 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
         }
         .service-url {
             font-size: 0.8rem;
-            color: #888;
+            color: var(--subtext);
         }
         .last-refresh {
             text-align: center;
             margin-top: 2rem;
-            color: #666;
+            color: var(--subtext);
             font-size: 0.85rem;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .settings-panel {
+            display: none;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .settings-panel.open {
+            display: block;
+        }
+        .settings-panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        .settings-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--base);
+            border-radius: 8px;
+        }
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--overlay);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle.on {
+            background: var(--green);
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: var(--base);
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle.on::after {
+            transform: translateX(20px);
+        }
+        .service-card.disabled {
+            opacity: 0.4;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -137,8 +214,17 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
     <div class="container">
         <header>
             <h1>arr-dashboard</h1>
-            <button class="refresh-btn" onclick="refresh()">Refresh</button>
+            <div class="header-buttons">
+                <button class="settings-btn" onclick="toggleSettings()">Settings</button>
+                <button class="refresh-btn" onclick="refresh()">Refresh</button>
+            </div>
         </header>
+            </div>
+        </header>
+        <div class="settings-panel" id="settingsPanel">
+            <h2>Visible Services</h2>
+            <div class="settings-list" id="settingsList"></div>
+        </div>
         <div class="services-grid" id="services"></div>
         <div class="last-refresh" id="lastRefresh"></div>
     </div>
@@ -151,22 +237,64 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
             const data = await res.json();
             services = data.services;
             render();
+            renderSettings();
         }
 
         function render() {
             const container = document.getElementById('services');
-            container.innerHTML = services.map(svc => \`
-                <a href="\${svc.url}" target="_blank" class="service-card">
-                    <div class="status-dot \${svc.status}"></div>
-                    <div class="service-info">
-                        <div class="service-name">\${svc.name}</div>
-                        <div class="service-url">\${svc.url}</div>
-                    </div>
-                </a>
-            \`).join('');
+            container.innerHTML = services.map(svc => 
+                '<a href="' + svc.url + '" target="_blank" class="service-card ' + (svc.enabled ? '' : 'disabled') + '">' +
+                    '<div class="status-dot ' + svc.status + '"></div>' +
+                    '<div class="service-info">' +
+                        '<div class="service-name">' + svc.name + '</div>' +
+                        '<div class="service-url">' + svc.url + '</div>' +
+                    '</div>' +
+                '</a>'
+            ).join('');
 
             const refreshEl = document.getElementById('lastRefresh');
             refreshEl.textContent = services.length > 0 ? 'Last updated: ' + new Date().toLocaleTimeString() : '';
+        }
+
+        function renderSettings() {
+            const container = document.getElementById('settingsList');
+            container.innerHTML = services.map(svc => 
+                '<div class="setting-item">' +
+                    '<span>' + svc.name + '</span>' +
+                    '<div class="toggle ' + (svc.enabled ? 'on' : '') + '" data-systemd="' + svc.systemd + '" onclick="toggleService(this)"></div>' +
+                '</div>'
+            ).join('');
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('open');
+        }
+
+        async function toggleService(el) {
+            const systemd = el.dataset.systemd;
+            const newEnabled = !el.classList.contains('on');
+            
+            const updatedServices = services.map(svc => {
+                if (svc.systemd === systemd) {
+                    return { ...svc, enabled: newEnabled };
+                }
+                return svc;
+            });
+
+            await fetch('/api/services/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedServices.map(svc => ({
+                    systemd: svc.systemd,
+                    display: svc.name,
+                    port: svc.port,
+                    enabled: svc.enabled
+                })))
+            });
+
+            services = updatedServices;
+            render();
+            renderSettings();
         }
 
         async function refresh() {

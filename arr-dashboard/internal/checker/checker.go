@@ -14,11 +14,12 @@ type ServiceStatus struct {
 	Port    int    `json:"port"`
 	URL     string `json:"url"`
 	Status  string `json:"status"`
+	Enabled bool   `json:"enabled"`
 }
 
 type ServicesResponse struct {
 	Services    []ServiceStatus `json:"services"`
-	LastRefresh time.Time        `json:"lastRefresh"`
+	LastRefresh time.Time       `json:"lastRefresh"`
 }
 
 func GetServices() (*ServicesResponse, error) {
@@ -28,18 +29,19 @@ func GetServices() (*ServicesResponse, error) {
 	}
 
 	host := config.GetHost()
-	services := make([]ServiceStatus, len(cfg.Services))
+	services := make([]ServiceStatus, 0, len(cfg.Services))
 
-	for i, svc := range cfg.Services {
+	for _, svc := range cfg.Services {
 		status := checkSystemd(svc.Systemd)
 
-		services[i] = ServiceStatus{
+		services = append(services, ServiceStatus{
 			Name:    svc.Display,
 			Systemd: svc.Systemd,
 			Port:    svc.Port,
 			URL:     fmt.Sprintf("http://%s:%d", host, svc.Port),
 			Status:  status,
-		}
+			Enabled: svc.Enabled,
+		})
 	}
 
 	return &ServicesResponse{
